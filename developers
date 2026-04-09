@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fakecord; developers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="icon" type="image/png" href="https://em-content.zobj.net/source/microsoft/379/crocodile_1f40a.png">
+    <meta property="og:title" content="fakecord by nwsz" />
+    <meta property="og:description" content="fake discord messages & more. by nwsz (nwsfuz)" />
+    <meta property="og:url" content="https://github.com/nwsz/fakecord" />
+    <meta property="og:image" content="https://em-content.zobj.net/source/microsoft/379/crocodile_1f40a.png" />
+    <meta name="theme-color" content="#142638">
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --text-main: #e8e8e8;
+            --text-muted: #666;
+            --text-note: #a0a0a0;
+            --online: #23a559;
+            --idle: #faa61a;
+            --dnd: #ed4245;
+            --offline: #555;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --spotify: #1db954;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Lexend', sans-serif;
+            font-weight: 300;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            gap: 15px;
+        }
+
+        .user {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            width: 100%;
+            max-width: 380px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .avatar-wrap { position: relative; flex-shrink: 0; margin-top: 4px; }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            object-fit: cover;
+        }
+        .dot {
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+            transition: background-color 0.5s ease, box-shadow 0.5s ease;
+        }
+        .dot.online  { background: var(--online); }
+        .dot.idle    { background: var(--idle); }
+        .dot.dnd     { background: var(--dnd); }
+        .dot.offline { background: var(--offline); }
+
+        .right { flex: 1; min-width: 0; }
+        .name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .name { font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+
+        /* Clan Tag Style */
+        .clan-tag {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.07);
+            padding: 1px 5px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .platforms { display: flex; gap: 6px; }
+        .plat-icon {
+            color: var(--online);
+            display: flex;
+            align-items: center;
+            position: relative;
+            cursor: help;
+        }
+        .plat-icon svg { width: 14px; height: 14px; stroke-width: 2.5; }
+
+        .plat-icon::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-5px);
+            background: #1a1a1a;
+            color: #fff;
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            border: 1px solid #333;
+            z-index: 10;
+        }
+        .plat-icon:hover::after { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+
+        .activities { display: flex; flex-direction: column; gap: 6px; }
+        .act-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            animation: slideIn 0.4s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .act-title { font-weight: 600; color: #fff; display: block; margin-bottom: 2px; }
+        .act-sub { color: var(--text-muted); display: block; line-height: 1.4; }
+        .act-time { 
+            font-size: 10px; 
+            color: var(--text-muted); 
+            margin-top: 6px; 
+            display: block;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .progress-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 8px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--spotify);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        .divider {
+            width: 100%;
+            max-width: 380px;
+            height: 1px;
+            background: #1a1a1a;
+        }
+
+        .note {
+            width: 100%;
+            max-width: 380px;
+            font-size: 13px;
+            color: var(--text-note);
+            line-height: 1.7;
+            padding: 10px 0;
+            font-weight: 300;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { 
+            from { opacity: 0; transform: translateY(5px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        .note-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .btn-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--card-bg);
+            color: var(--text-note);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .btn-link:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .btn-link svg {
+            width: 18px;
+            height: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="user" id="u1">
+    <div class="avatar-wrap">
+        <img class="avatar" id="pfp-u1" src="">
+        <div class="dot offline" id="dot-u1"></div>
+    </div>
+    <div class="right">
+        <div class="name-row">
+            <div class="name" id="name-u1">...</div>
+            <div class="platforms" id="plat-u1"></div>
+        </div>
+        <div class="activities" id="acts-u1"></div>
+    </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="user" id="u2">
+    <div class="avatar-wrap">
+        <img class="avatar" id="pfp-u2" src="">
+        <div class="dot offline" id="dot-u2"></div>
+    </div>
+    <div class="right">
+        <div class="name-row">
+            <div class="name" id="name-u2">...</div>
+            <div class="platforms" id="plat-u2"></div>
+        </div>
+        <div class="activities" id="acts-u2"></div>
+    </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="note" id="note"></div>
+
+
+<div class="note-links">
+    <a href="https://feds.lol/nws" target="_blank" class="btn-link">
+        <i data-lucide="link-2"></i>
+    </a>
+    <a href="https://www.youtube.com/@nordicalls" target="_blank" class="btn-link">
+        <i data-lucide="play"></i>
+    </a>
+    <a href="https://discord.com/invite/wb5sEAegtg" target="_blank" class="btn-link">
+        <i data-lucide="house"></i>
+    </a>
+</div>
+
+<script>
+
+const NOTE_CONTENT = "Find a list of what I do below... \n — staff at feds.lol \n — qa & content creator at volute.games \n — owner of nordicalls \n I am a Inspector (Deputy Operational Commander) for MO8 Charlie Unit. If you have any questions, let me know!";
+
+// Change textContent to innerText
+document.getElementById('note').innerText = NOTE_CONTENT;
+const USERS = [
+    { id: '817410231088578610', slot: 'u1' },
+    { id: '1457057307631554776', slot: 'u2' }
+];
+
+function getAvatar(id, hash) {
+    if (!hash) return `https://cdn.discordapp.com/embed/avatars/0.png`;
+    const ext = hash.startsWith('a_') ? 'gif' : 'webp';
+    return `https://cdn.discordapp.com/avatars/${id}/${hash}.${ext}?size=128`;
+}
+
+function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    return h > 0 ? `${h}h ${m % 60}m ${s % 60}s` : `${m}:${(s % 60).toString().padStart(2, '0')}`;
+}
+
+function renderUser(slot, data) {
+    const u = data.discord_user;
+    const nameEl = document.getElementById(`name-${slot}`);
+    
+    // Server Tag Logic
+    let nameHtml = u.global_name || u.username;
+    if (u.primary_guild && u.primary_guild.tag) {
+        nameHtml += ` <span class="clan-tag">${u.primary_guild.tag}</span>`;
+    }
+    nameEl.innerHTML = nameHtml;
+
+    document.getElementById(`pfp-${slot}`).src = getAvatar(u.id, u.avatar);
+    
+    // Status Logic (Idle Fix)
+    const status = (data.discord_status || 'offline').toLowerCase();
+    document.getElementById(`dot-${slot}`).className = `dot ${status}`;
+
+    // Platforms
+    const platEl = document.getElementById(`plat-${slot}`);
+    platEl.innerHTML = '';
+    const devices = [
+        { key: 'active_on_discord_desktop', icon: 'monitor', label: 'Desktop' },
+        { key: 'active_on_discord_mobile', icon: 'smartphone', label: 'Mobile' },
+        { key: 'active_on_discord_web', icon: 'globe', label: 'Browser' }
+    ];
+
+    devices.forEach(d => {
+        if (data[d.key]) {
+            const span = document.createElement('span');
+            span.className = 'plat-icon';
+            span.setAttribute('data-label', d.label);
+            span.innerHTML = `<i data-lucide="${d.icon}"></i>`;
+            platEl.appendChild(span);
+        }
+    });
+    lucide.createIcons();
+
+    // Activities
+    const actsEl = document.getElementById(`acts-${slot}`);
+    actsEl.innerHTML = '';
+    
+    (data.activities || []).forEach((act, idx) => {
+        if (act.type === 4 && !act.state && !act.emoji) return;
+        
+        const card = document.createElement('div');
+        card.className = 'act-card';
+        
+        let name = act.name;
+        if (name === "Hang Status") name = "In Voice";
+
+        if (act.type === 4) {
+            const emoji = act.emoji ? (act.emoji.id ? `<img src="https://cdn.discordapp.com/emojis/${act.emoji.id}.webp?size=16" style="vertical-align:middle;margin-right:4px;">` : act.emoji.name + ' ') : '';
+            card.innerHTML = `<span class="act-sub">${emoji}${act.state || ''}</span>`;
+            actsEl.appendChild(card);
+            return;
+        }
+
+        let details = act.details || act.state || '';
+        let timeHtml = '';
+
+        if (act.name === 'Spotify' && data.spotify) {
+            const start = data.spotify.timestamps.start;
+            const end = data.spotify.timestamps.end;
+            timeHtml = `
+                <div class="act-time" data-spotify-start="${start}" data-spotify-end="${end}">0:00 / 0:00</div>
+                <div class="progress-bg"><div class="progress-fill" id="spot-bar-${slot}-${idx}"></div></div>
+            `;
+        } else if (act.timestamps && act.timestamps.start) {
+            timeHtml = `<div class="act-time" data-start="${act.timestamps.start}">0:00 elapsed</div>`;
+        }
+
+        card.innerHTML = `
+            <span class="act-title">${name}</span>
+            <span class="act-sub">${details}</span>
+            ${timeHtml}
+        `;
+        actsEl.appendChild(card);
+    });
+}
+
+setInterval(() => {
+    const now = Date.now();
+    document.querySelectorAll('[data-start]').forEach(el => {
+        const start = parseInt(el.getAttribute('data-start'));
+        el.textContent = `${formatTime(now - start)} elapsed`;
+    });
+
+    document.querySelectorAll('[data-spotify-start]').forEach(el => {
+        const start = parseInt(el.getAttribute('data-spotify-start'));
+        const end = parseInt(el.getAttribute('data-spotify-end'));
+        const total = end - start;
+        const progress = Math.max(0, Math.min(total, now - start));
+        const percent = (progress / total) * 100;
+        
+        el.textContent = `${formatTime(progress)} / ${formatTime(total)}`;
+        const bar = el.nextElementSibling.querySelector('.progress-fill');
+        if (bar) bar.style.width = percent + '%';
+    });
+}, 1000);
+
+function connect(userId, slot) {
+    let ws, hb;
+    function start() {
+        ws = new WebSocket('wss://api.lanyard.rest/socket');
+        ws.onmessage = e => {
+            const m = JSON.parse(e.data);
+            if (m.op === 1) {
+                hb = setInterval(() => ws.send(JSON.stringify({ op: 3 })), m.d.heartbeat_interval);
+                ws.send(JSON.stringify({ op: 2, d: { subscribe_to_ids: [userId] } }));
+            }
+            if (m.op === 0 && m.d) {
+                const presence = m.t === 'INIT_STATE' ? (m.d[userId] || m.d) : m.d;
+                if (presence) renderUser(slot, presence);
+            }
+        };
+        ws.onclose = () => { clearInterval(hb); setTimeout(start, 5000); };
+    }
+    start();
+}
+
+USERS.forEach(({ id, slot }) => connect(id, slot));
+// Add this as the very last line in your <script> tag
+lucide.createIcons();
+</script>
+</body>
+</html>
